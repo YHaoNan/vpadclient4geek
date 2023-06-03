@@ -25,8 +25,27 @@ class MidiMessage:
         msg.note, _ = b.read_int1(bytes, 0)
         msg.velocity, _ = b.read_int1(bytes, 1)
         msg.state, _ = b.read_int1(bytes, 2)
-        msg.state, _ = b.read_int1(bytes, 3)
+        msg.channel, _ = b.read_int1(bytes, 3)
         return msg
+class HandShakeMessage:
+    def __init__(self, name, platform):
+        self.name=name
+        self.platform=platform
+    def bytes(self):
+        return b.message([
+            b.int1(1),
+            b.string(self.name),
+            b.string(self.platform)
+        ])
+    def build(bytes):
+        msg = HandShakeMessage('', '')
+        offset = 0
+        msg.name, n = b.read_string(bytes, offset)
+        offset += n
+        msg.platform, n = b.read_string(bytes, offset)
+        offset += n
+        return msg
+
 
 class ArpMessage:
     def __init__(self, note, velocity, state, method, rate, swing_pct, up_note_cnt, velocity_automation, dynamic_pct, bpm, channel=1):
