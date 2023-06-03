@@ -1,4 +1,29 @@
 #!/usr/bin/python3
+
+"""
+VPadSequencer提供一个步进音序器（Step Sequencer）
+
+Key Bindings:
+移动光标 : 选择当前按钮位置
+hjkl   : 选择当前按钮位置
+空格    : 切换当前按钮打开/关闭状态
+
+< : 活动区间左移
+> : 活动区间右移
+p : 播放/停止
+q : 退出
+
+除此之外，该脚本还建立了反向代理服务器，配合VPadClient中提供的`VPadSequencer.preset.json`预设，可以将客户端的消息解析成
+音序器的对应操作。
+
+控制消息-Play : 播放/停止
+控制消息-Stop : 停止
+控制消息-Undo : 活动区间左移
+控制消息-Redo : 活动区间右移
+MidiOn消息0~63: 当前活动区间中的对应按钮打开（一个区间中正好有64个按钮）
+MidiOff消息0~63: 当前活动区间中的对应按钮关闭（一个区间中正好有64个按钮）
+"""
+
 import curses
 import time
 import sys
@@ -159,15 +184,20 @@ def handle_ticks():
         if time.perf_counter_ns() - playtime >= (ticks * interval):
             ticks+=1
             send_message()
-  
+def incrspan():
+    global span
+    if span+1 < SEQ_COLS // 8:
+        span+=1
+def decrspan():
+    global span
+    if span > 0:
+        span-=1
 def handle_keypress(key):
     if key == None: return
     print_ui(f'current pressed key {key}, maxspan {max_span}')
     global span, cursor_x, cursor_y, matrix, playing, bpm 
-    if key == '>' and span + 1 < SEQ_COLS//8:
-        span+=1
-    elif key == '<' and span > 0:
-        span-=1
+    if key == '>': incrspan()
+    elif key == '<': decrspan()
     elif key == 'KEY_UP' or key == 'k': cursor_x = (cursor_x - 1) % SEQ_LINES
     elif key == 'KEY_DOWN' or key == 'j': cursor_x = (cursor_x + 1) % SEQ_LINES
     elif key == 'KEY_LEFT' or key == 'h': cursor_y = (cursor_y - 1) % SEQ_COLS
@@ -213,14 +243,20 @@ def main():
     def start_server():
         def message_handler(message):
             if isinstance(message, HandShakeMessage):
-                print_ui(f'We got a handshake message from other client {message.name}')
+                print_ui(f'Handshake from [{message.name}]')
                 return HandShakeMessage('VPadSequencer', 'Python')
             elif isinstance(message, MidiMessage):
-                print_ui(f'We got a midimessge note {message.note} state {message.state}')
+                print_ui(f'MidiMsg {message.note} state {message.state}')
                 if message.state == 1:
                     turn_on(message.note // 8, span*8 + message.note % 8)
                 else:
                     turn_off(message.note // 8, span*8 + message.note % 8)
+            elif isinstance(message, ControlMessage):
+                print_ui(f'ControlMessage op {message.operation}')
+                if message.op == COP_PLAY: toggle_playing()
+                elif message.op == COP_STOP and playing: toggle_playing()
+                elif message.op == COP_UNDO: decrspan()
+                elif message.op == COP_REDO: incrspan()
             return None
         Server().listen(message_handler)
     threading.Thread(target=start_server).start()

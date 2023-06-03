@@ -109,3 +109,28 @@ class ChordMessage:
 
     def build(bytes):
         pass
+
+class ControlMessage:
+    def __init__(self, operation, state, auto_close):
+        self.operation = operation
+        self.state = state
+        self.auto_close = auto_close
+    
+    def bytes(self):
+        return b.message([
+            b.int1(8),
+            b.int1(self.operation),
+            b.int1(self.state),
+            b.int1(self.auto_close),
+        ])
+
+    def build(bytes):
+        msg = ControlMessage(0,0,0)
+        offset = 0
+        msg.operation, n = b.read_int1(bytes, offset)
+        offset += n
+        msg.state, n = b.read_int1(bytes, offset)
+        offset += n
+        msg.auto_close, n = b.read_int1(bytes, offset)
+        offset += n
+        return msg
