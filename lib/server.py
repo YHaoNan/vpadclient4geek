@@ -18,7 +18,8 @@ _MESSAGE_OBJ = {
     1: message.HandShakeMessage,
     2: message.MidiMessage,
     3: message.ArpMessage,
-    4: message.ChordMessage
+    4: message.ChordMessage,
+    8: message.ControlMessage
 }
 
 class ServerHandler(socketserver.BaseRequestHandler):

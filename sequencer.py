@@ -253,10 +253,11 @@ def main():
                     turn_off(message.note // 8, span*8 + message.note % 8)
             elif isinstance(message, ControlMessage):
                 print_ui(f'ControlMessage op {message.operation}')
-                if message.op == COP_PLAY: toggle_playing()
-                elif message.op == COP_STOP and playing: toggle_playing()
-                elif message.op == COP_UNDO: decrspan()
-                elif message.op == COP_REDO: incrspan()
+                op = message.operation
+                if op == COP_PLAY: toggle_playing()
+                elif op == COP_STOP and playing: toggle_playing()
+                elif op == COP_UNDO: decrspan()
+                elif op == COP_REDO: incrspan()
             return None
         Server().listen(message_handler)
     threading.Thread(target=start_server).start()
