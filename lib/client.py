@@ -13,10 +13,16 @@ class Client:
         if self.is_used:
             raise "Cannot reuse client, please create another!"
         try:
-            self.conn = socket.create_connection((self.host, SERVER_PORT), timeout=timeout)
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            s.settimeout(10)
+            s.connect((self.host, SERVER_PORT))
+            self.conn = s
+            #self.conn = socket.create_connection((self.host, SERVER_PORT), timeout=timeout)
             self.is_used = True
             return True
-        except:
+        except e:
+            print(e)
             return False
     
     def close(self):

@@ -5,7 +5,7 @@
 
 但是...
 
-> 除了中间层太多的问题
+> 除了中间层太多的问题  
 > except for the problem of too many layers of indirection.
 
 中间层太多会严重影响效率，VPad是一个效率优先的软件，所以，请在效率和创意之间进行权衡！

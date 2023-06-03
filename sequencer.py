@@ -106,7 +106,7 @@ def toggle_playing():
 def incr_bpm(newbpm):
     global bpm, interval
     bpm+=newbpm
-    interval = 60 * 1000000000 // bpm // 4
+    interval = 60 * 1000000000 // bpm // 2
   
 
 def print_ui(msg):
@@ -230,7 +230,7 @@ def tui(scr):
         draw_ui(scr)
         key = get_key(scr)
         #curses.napms(1) # sleep 1ms to avoid busy cpu spin
-        time.sleep(0.001)
+        time.sleep(1/1000)
 def main():
     if len(sys.argv) < 2:
         print("Usage: sequencer.py <vpad server host>")
