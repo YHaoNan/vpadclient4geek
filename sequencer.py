@@ -13,6 +13,11 @@ hjkl   : 选择当前按钮位置
 p : 播放/停止
 q : 退出
 
+1 : 1 step fill
+2 : 2 step fill
+4 : 4 step fill
+c : clear this line
+
 除此之外，该脚本还建立了反向代理服务器，配合VPadClient中提供的`VPadSequencer.preset.json`预设，可以将客户端的消息解析成
 音序器的对应操作。
 
@@ -81,7 +86,7 @@ def turn_off(x, y):
     span = y // 8
     span_counter[span] -= 1
     matrix[x][y] = False
-    if max_span == span:
+    if max_span == span and span_counter[span] == 0:
         # 找到下一个max_span
         for c in reversed(range(0, span)):
             if span_counter[c] != 0:
@@ -95,6 +100,16 @@ def toggle_light(x, y):
         turn_off(x,y)
     else: 
         turn_on(x,y)
+
+def stepfill(step):
+    x = cursor_x
+    for y in range(0, max_span*8+8,step):
+        turn_on(x, y)
+def clear():
+    x = cursor_x
+    for y in range(0, max_span*8+8):
+        turn_off(x, y)
+
 
 def toggle_playing():
     global playing, playtime, ticks
@@ -212,6 +227,10 @@ def handle_keypress(key):
         if bpm > 1: incr_bpm(-1)
     elif key == '_': 
         if bpm > 10: incr_bpm(-10)
+    elif key == '1': stepfill(1)
+    elif key == '2': stepfill(2)
+    elif key == '4': stepfill(4)
+    elif key == 'c': clear()
 
 def get_key(scr):
     try: 
